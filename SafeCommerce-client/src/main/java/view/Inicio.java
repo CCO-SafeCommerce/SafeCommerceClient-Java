@@ -52,6 +52,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileWriter;
+import java.math.BigInteger;
 import java.net.NetworkInterface;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -118,7 +119,7 @@ public class Inicio extends javax.swing.JFrame {
         List<String[]> list = new ArrayList<>();
         list.add(header);
         list.add(record1);
-        String caminhoTemp = System.getProperty("java.io.tmpdir") + "insert.csv";
+        String caminhoTemp = System.getProperty("java.io.tmpdir") + "/insert.csv";
         caminhoTemp = caminhoTemp.replace("\\", "/");
         System.out.println(caminhoTemp);
         try ( CSVWriter writer = new CSVWriter(new FileWriter(System.getProperty("java.io.tmpdir") + "/insert.csv"))) {
@@ -169,13 +170,13 @@ public class Inicio extends javax.swing.JFrame {
                 criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(proc.getFrequencia()).replace(",", "."), "CPU");
                 //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, parametros.get(i).getFkMetrica(), (proc.getFrequencia()));
             } else if (parametros.get(i).getFkMetrica() == 5) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(conversor.formatarBytes(looca.getMemoria().getTotal())), "RAM");
+                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(conversor.formatarBytes(looca.getMemoria().getTotal())).replace(" GiB", "").replace(",", "."), "RAM");
                 //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, parametros.get(i).getFkMetrica(), (looca.getMemoria().getTotal()));
             } else if (parametros.get(i).getFkMetrica() == 6) {
                 criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(ram), "RAM");
                 //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Ram')", fkServidor, parametros.get(i).getFkMetrica(), ram);
             } else if (parametros.get(i).getFkMetrica() == 7) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), conversor.formatarBytes(looca.getGrupoDeDiscos().getTamanhoTotal()), "Disco");
+                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), conversor.formatarBytes(looca.getGrupoDeDiscos().getTamanhoTotal()).replace(" GiB", "").replace(",", "."), "Disco");
                 //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, parametros.get(i).getFkMetrica(), conversor.formatarBytes(looca.getGrupoDeDiscos().getTamanhoTotal()));
             } else if (parametros.get(i).getFkMetrica() == 8) {
                 criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(disco), "Disco");
@@ -314,7 +315,6 @@ public class Inicio extends javax.swing.JFrame {
         labelSaudacao = new javax.swing.JLabel();
         labelSaudacao.setFont(new Font("Roboto Black", Font.PLAIN, 16));
         qrCodeLabel = new javax.swing.JLabel();
-
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
@@ -376,9 +376,9 @@ public class Inicio extends javax.swing.JFrame {
         			.addComponent(labelSaudacao_1))
         );
         jPanel1.setLayout(jPanel1Layout);
-
-        QrCode qr0 = QrCode.encodeText("http://localhost:3333/dashboard/servidores-java.html?idUsuario="+usuario.getIdUsuario()+"&idServidor="+fkServidor, QrCode.Ecc.LOW);
-        BufferedImage img = toImage(qr0, 4, 10); // See QrCodeGeneratorDemo
+        String token = toHex(usuario.getSenha());
+        QrCode qr0 = QrCode.encodeText("http://localhost:3333/dashboard/servidores-java.html?idServer="+fkServidor+"&idUser="+usuario.getIdUsuario()+"&token="+token, QrCode.Ecc.LOW);
+        BufferedImage img = toImage(qr0, 2, 1); // See QrCodeGeneratorDemo
         String caminho = System.getProperty("java.io.tmpdir") + "/qr-code.png";
 
         try {
@@ -440,12 +440,15 @@ public class Inicio extends javax.swing.JFrame {
 
         /* Create and display the form */
     }
+    
 
     /*---- Utilities ----*/
     private static BufferedImage toImage(QrCode qr, int scale, int border) {
         return toImage(qr, scale, border, 0xFFFFFF, 0x000000);
     }
-
+    public String toHex(String arg) {
+        return String.format("%040x", new BigInteger(1, arg.getBytes(/*YOUR_CHARSET?*/)));
+    }
     /**
      * Returns a raster image depicting the specified QR Code, with the
      * specified module scale, border modules, and module colors.
