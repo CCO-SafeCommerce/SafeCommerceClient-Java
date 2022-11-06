@@ -5,6 +5,8 @@ import com.github.britooo.looca.api.group.discos.DiscosGroup;
 import com.github.britooo.looca.api.group.discos.Volume;
 import com.github.britooo.looca.api.group.memoria.Memoria;
 import com.github.britooo.looca.api.group.processador.Processador;
+import com.github.britooo.looca.api.group.processos.Processo;
+import com.github.britooo.looca.api.group.processos.ProcessosGroup;
 import com.github.britooo.looca.api.util.Conversor;
 import com.opencsv.CSVWriter;
 import dao.Conexao;
@@ -60,6 +62,9 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 import javax.swing.JButton;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StopWatch;
@@ -111,7 +116,7 @@ public class Inicio extends javax.swing.JFrame {
 
     public void criarCSV(Integer fkServidor, Integer fkMetrica, String valor, String componente) throws IOException {
         String[] header = {"fkServidor", "fkMetrica", "dataLeitura", "valor_leitura", "componente"};
-        System.out.println(componente);
+        //System.out.println(componente);
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
         String[] record1 = {String.valueOf(fkServidor), String.valueOf(fkMetrica), dtf.format(now), valor, componente};
@@ -121,8 +126,8 @@ public class Inicio extends javax.swing.JFrame {
         list.add(record1);
         String caminhoTemp = System.getProperty("java.io.tmpdir") + "/insert.csv";
         caminhoTemp = caminhoTemp.replace("\\", "/");
-        System.out.println(caminhoTemp);
-        try ( CSVWriter writer = new CSVWriter(new FileWriter(System.getProperty("java.io.tmpdir") + "/insert.csv"))) {
+        //System.out.println(caminhoTemp);
+        try (CSVWriter writer = new CSVWriter(new FileWriter(System.getProperty("java.io.tmpdir") + "/insert.csv"))) {
             writer.writeAll(list);
         }
         String esquel = " LOAD DATA LOCAL INFILE '" + caminhoTemp
@@ -133,7 +138,7 @@ public class Inicio extends javax.swing.JFrame {
         timer.start();
         con.update(esquel);
         timer.stop();
-        System.out.println(timer.getTotalTimeSeconds());
+        //System.out.println(timer.getTotalTimeSeconds());
 
     }
 
@@ -151,47 +156,77 @@ public class Inicio extends javax.swing.JFrame {
     private void Monitorando(Double cpu, Double ram, Double disco) throws Exception {
         Long lDisco = looca.getGrupoDeDiscos().getDiscos().get(0).getBytesDeLeitura();
         Long eDisco = looca.getGrupoDeDiscos().getDiscos().get(0).getBytesDeEscritas();
-        System.out.println(parametros);
-        for (int i = 0; i < parametros.size(); i++) {
-            Integer atual = parametros.get(i).getFkMetrica();
-            System.out.println(atual +" metrica tal");
+        ProcessosGroup pc = looca.getGrupoDeProcessos();
+        List<Processo> processos = pc.getProcessos().stream().distinct().collect(Collectors.toList());
+
+        Collections.sort(processos, new Comparator<Processo>() {
+            @Override
+            public int compare(Processo n1, Processo n2) {
+                Double uso1 = n1.getUsoCpu();
+                Double uso2 = n2.getUsoCpu();
+                return uso1.compareTo(uso2);
+            }
+        });
+
+        for (Parametro parametro : parametros) {
+            Integer atual = parametro.getFkMetrica();
+            System.out.println(atual + " metrica tal");
             String cpuFormat = String.format("%.1f", cpu);
 
             if (atual == 1) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(proc.getUso()), "CPU");
-                // con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, parametros.get(i).getFkMetrica(), (proc.getUso()));
+                criarCSV(fkServidor, atual, String.valueOf(proc.getUso()), "CPU");
+                // con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, atual, (proc.getUso()));
             } else if (atual == 2) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(proc.getNumeroCpusLogicas()), "CPU");
-                // con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, parametros.get(i).getFkMetrica(), (proc.getNumeroCpusLogicas()));
+                criarCSV(fkServidor, atual, String.valueOf(proc.getNumeroCpusLogicas()), "CPU");
+                // con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, atual, (proc.getNumeroCpusLogicas()));
             } else if (atual == 3) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(cpuFormat).replace(",", "."), "CPU");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, parametros.get(i).getFkMetrica(), (cpuFormat));
+                criarCSV(fkServidor, atual, String.valueOf(proc.getFrequencia()).replace(",", "."), "CPU");
+                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, atual, (cpuFormat));
             } else if (atual == 4) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(proc.getFrequencia()).replace(",", "."), "CPU");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, parametros.get(i).getFkMetrica(), (proc.getFrequencia()));
-            } else if (parametros.get(i).getFkMetrica() == 5) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(conversor.formatarBytes(looca.getMemoria().getTotal())).replace(" GiB", "").replace(",", "."), "RAM");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, parametros.get(i).getFkMetrica(), (looca.getMemoria().getTotal()));
-            } else if (parametros.get(i).getFkMetrica() == 6) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(ram), "RAM");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Ram')", fkServidor, parametros.get(i).getFkMetrica(), ram);
-            } else if (parametros.get(i).getFkMetrica() == 7) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), conversor.formatarBytes(looca.getGrupoDeDiscos().getTamanhoTotal()).replace(" GiB", "").replace(",", "."), "Disco");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, parametros.get(i).getFkMetrica(), conversor.formatarBytes(looca.getGrupoDeDiscos().getTamanhoTotal()));
-            } else if (parametros.get(i).getFkMetrica() == 8) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(disco), "Disco");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, parametros.get(i).getFkMetrica(), disco);
-            } else if (parametros.get(i).getFkMetrica() == 9) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(lDisco), "Disco");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, parametros.get(i).getFkMetrica(), looca.getGrupoDeDiscos());
-            } else if (parametros.get(i).getFkMetrica() == 10) {
-                criarCSV(fkServidor, parametros.get(i).getFkMetrica(), String.valueOf(eDisco), "Disco");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, parametros.get(i).getFkMetrica(), looca.getGrupoDeDiscos());
-            }
+                criarCSV(fkServidor, atual, String.valueOf(proc.getFrequencia()).replace(",", "."), "CPU");
+                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, atual, (proc.getFrequencia()));
+            } else if (atual == 5) {
+                criarCSV(fkServidor, atual, String.valueOf(conversor.formatarBytes(looca.getMemoria().getTotal())).replace(" GiB", "").replace(",", "."), "RAM");
+                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, atual, (looca.getMemoria().getTotal()));
+            } else if (atual == 6) {
+                criarCSV(fkServidor, atual, String.valueOf(ram), "RAM");
+                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Ram')", fkServidor, atual, ram);
+            } else if (atual == 7) {
+                criarCSV(fkServidor, atual, conversor.formatarBytes(looca.getGrupoDeDiscos().getTamanhoTotal()).replace(" GiB", "").replace(",", "."), "Disco");
+                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, atual, conversor.formatarBytes(looca.getGrupoDeDiscos().getTamanhoTotal()));
+            } else if (atual == 8) {
+                criarCSV(fkServidor, atual, String.valueOf(disco), "Disco");
+                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, atual, disco);
+            } else if (atual == 9) {
+                criarCSV(fkServidor, atual, String.valueOf(conversor.formatarSegundosDecorridos(lDisco)), "Disco");
+                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, atual, looca.getGrupoDeDiscos());
+            } else if (atual == 10) {
+                criarCSV(fkServidor, atual, String.valueOf(conversor.formatarSegundosDecorridos(eDisco)), "Disco");
+                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, atual, looca.getGrupoDeDiscos());
+            } else if (atual == 11) {
+                 List<String> nomesProcessos = new ArrayList();
+                for (int i = processos.size()-1; i >= processos.size()-10;i--) {
+                    if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos.contains(processos.get(i).getNome())) {
+                        criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getPid()), processos.get(i).getNome());
+                    }   
+                }
+              } else if (atual == 12) {
+                 List<String> nomesProcessos = new ArrayList();
+                for (int i = processos.size()-1; i >= processos.size()-10;i--) {
+                    if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos.contains(processos.get(i).getNome())) {
+                        criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getUsoCpu()/10), processos.get(i).getNome());
+                    }   
+                }
+              } else if (atual == 13) {
+                 List<String> nomesProcessos = new ArrayList();
+                for (int i = processos.size()-1; i >= processos.size()-10;i--) {
+                    if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos.contains(processos.get(i).getNome())) {
+                        criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getUsoMemoria()), processos.get(i).getNome());
+                    }   
+                }
+              } 
 
             System.out.println("GRAVADO NO BANCO");
-
-            // parametrosG = parametros;
         }
 
     }
@@ -244,14 +279,14 @@ public class Inicio extends javax.swing.JFrame {
             public void actionPerformed(ActionEvent e) {
                 // colocar os dados sobre uso de hardware dentro da cpuSeries, ram Series e discoSeries, sempre usando .getItemCount()
                 // trocar o random pelo uso do Looca
-  StopWatch timer = new StopWatch();
-                    timer.start();
+                StopWatch timer = new StopWatch();
+                timer.start();
                 Memoria ram = looca.getMemoria();
                 Processador cpu = looca.getProcessador();
-               
+
                 DiscosGroup rom = looca.getGrupoDeDiscos();
                 Conversor conversor = new Conversor();
-               
+
                 List<Volume> volumes = rom.getVolumes();
                 Double usoVolume = 0d;
                 Long totalVolume = 0l;
@@ -268,11 +303,9 @@ public class Inicio extends javax.swing.JFrame {
                 Long ramTotal = ram.getTotal();
                 Double porcentagemRam = (Double.valueOf(ramUso) / Double.valueOf(ramTotal)) * 100;
                 try {
-                    
-                  
+
                     Double usoCPU = cpu.getUso();
-                    
-                    
+
                     Monitorando(usoCPU, porcentagemRam, porcentagemVolume);
                     cpuSeries.add(cpuSeries.getItemCount(), usoCPU);
                     ramSeries.add(ramSeries.getItemCount(), porcentagemRam);
@@ -281,7 +314,7 @@ public class Inicio extends javax.swing.JFrame {
                     System.out.println(ed);
                 }
                 timer.stop();
-                    System.out.println(timer.getTotalTimeSeconds() + " tempo no metodo");
+                System.out.println(timer.getTotalTimeSeconds() + " tempo no metodo");
             }
         }).start();
         dataset.addSeries(cpuSeries);
@@ -342,42 +375,42 @@ public class Inicio extends javax.swing.JFrame {
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1Layout.setHorizontalGroup(
-        	jPanel1Layout.createParallelGroup(Alignment.LEADING)
-        		.addGroup(jPanel1Layout.createSequentialGroup()
-        			.addGroup(jPanel1Layout.createParallelGroup(Alignment.LEADING)
-        				.addGroup(jPanel1Layout.createSequentialGroup()
-        					.addGap(6)
-        					.addComponent(qrCodeLabel, GroupLayout.PREFERRED_SIZE, 239, GroupLayout.PREFERRED_SIZE)
-        					.addPreferredGap(ComponentPlacement.UNRELATED)
-        					.addGroup(jPanel1Layout.createParallelGroup(Alignment.LEADING)
-        						.addGroup(jPanel1Layout.createSequentialGroup()
-        							.addGap(71)
-        							.addComponent(labelSaudacao))
-        						.addGroup(jPanel1Layout.createSequentialGroup()
-        							.addGap(95)
-        							.addComponent(verProcessos))))
-        				.addGroup(jPanel1Layout.createSequentialGroup()
-        					.addGap(38)
-        					.addComponent(labelSaudacao_1, GroupLayout.PREFERRED_SIZE, 169, GroupLayout.PREFERRED_SIZE)))
-        			.addContainerGap(265, Short.MAX_VALUE))
+                jPanel1Layout.createParallelGroup(Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(Alignment.LEADING)
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addGap(6)
+                                                .addComponent(qrCodeLabel, GroupLayout.PREFERRED_SIZE, 239, GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(ComponentPlacement.UNRELATED)
+                                                .addGroup(jPanel1Layout.createParallelGroup(Alignment.LEADING)
+                                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                                .addGap(71)
+                                                                .addComponent(labelSaudacao))
+                                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                                .addGap(95)
+                                                                .addComponent(verProcessos))))
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addGap(38)
+                                                .addComponent(labelSaudacao_1, GroupLayout.PREFERRED_SIZE, 169, GroupLayout.PREFERRED_SIZE)))
+                                .addContainerGap(265, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
-        	jPanel1Layout.createParallelGroup(Alignment.LEADING)
-        		.addGroup(jPanel1Layout.createSequentialGroup()
-        			.addGap(20)
-        			.addComponent(labelSaudacao)
-        			.addGap(28)
-        			.addComponent(verProcessos)
-        			.addContainerGap(86, Short.MAX_VALUE))
-        		.addGroup(Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-        			.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        			.addComponent(qrCodeLabel, GroupLayout.PREFERRED_SIZE, 135, GroupLayout.PREFERRED_SIZE)
-        			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addComponent(labelSaudacao_1))
+                jPanel1Layout.createParallelGroup(Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(20)
+                                .addComponent(labelSaudacao)
+                                .addGap(28)
+                                .addComponent(verProcessos)
+                                .addContainerGap(86, Short.MAX_VALUE))
+                        .addGroup(Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(qrCodeLabel, GroupLayout.PREFERRED_SIZE, 135, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(ComponentPlacement.RELATED)
+                                .addComponent(labelSaudacao_1))
         );
         jPanel1.setLayout(jPanel1Layout);
         String token = toHex(usuario.getSenha());
-        QrCode qr0 = QrCode.encodeText("http://localhost:3333/dashboard/servidores-java.html?idServer="+fkServidor+"&idUser="+usuario.getIdUsuario()+"&token="+token, QrCode.Ecc.LOW);
+        QrCode qr0 = QrCode.encodeText("http://localhost:3333/dashboard/servidores-java.html?idServer=" + fkServidor + "&idUser=" + usuario.getIdUsuario() + "&token=" + token, QrCode.Ecc.LOW);
         BufferedImage img = toImage(qr0, 2, 1); // See QrCodeGeneratorDemo
         String caminho = System.getProperty("java.io.tmpdir") + "/qr-code.png";
 
@@ -398,17 +431,17 @@ public class Inicio extends javax.swing.JFrame {
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         layout.setHorizontalGroup(
-        	layout.createParallelGroup(Alignment.TRAILING)
-        		.addComponent(panel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 696, Short.MAX_VALUE)
-        		.addComponent(jPanel1, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 696, Short.MAX_VALUE)
+                layout.createParallelGroup(Alignment.TRAILING)
+                        .addComponent(panel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 696, Short.MAX_VALUE)
+                        .addComponent(jPanel1, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 696, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-        	layout.createParallelGroup(Alignment.LEADING)
-        		.addGroup(Alignment.TRAILING, layout.createSequentialGroup()
-        			.addComponent(jPanel1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        			.addComponent(panel, GroupLayout.PREFERRED_SIZE, 448, GroupLayout.PREFERRED_SIZE)
-        			.addContainerGap())
+                layout.createParallelGroup(Alignment.LEADING)
+                        .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(jPanel1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(panel, GroupLayout.PREFERRED_SIZE, 448, GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap())
         );
         getContentPane().setLayout(layout);
 
@@ -440,15 +473,17 @@ public class Inicio extends javax.swing.JFrame {
 
         /* Create and display the form */
     }
-    
+
 
     /*---- Utilities ----*/
     private static BufferedImage toImage(QrCode qr, int scale, int border) {
         return toImage(qr, scale, border, 0xFFFFFF, 0x000000);
     }
+
     public String toHex(String arg) {
         return String.format("%040x", new BigInteger(1, arg.getBytes(/*YOUR_CHARSET?*/)));
     }
+
     /**
      * Returns a raster image depicting the specified QR Code, with the
      * specified module scale, border modules, and module colors.
