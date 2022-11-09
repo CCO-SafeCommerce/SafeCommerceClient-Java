@@ -204,27 +204,29 @@ public class Inicio extends javax.swing.JFrame {
                 criarCSV(fkServidor, atual, String.valueOf(conversor.formatarSegundosDecorridos(eDisco)), "Disco");
                 //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, atual, looca.getGrupoDeDiscos());
             } else if (atual == 11) {
-                 List<String> nomesProcessos = new ArrayList();
-                for (int i = processos.size()-1; i >= processos.size()-10;i--) {
+                //CRIA O INSERT DA TEMPERATURA AQ DUARTE
+            } else if (atual == 12) {
+                List<String> nomesProcessos = new ArrayList();
+                for (int i = processos.size() - 1; i >= processos.size() - 10; i--) {
                     if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos.contains(processos.get(i).getNome())) {
                         criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getPid()), processos.get(i).getNome());
-                    }   
+                    }
                 }
-              } else if (atual == 12) {
-                 List<String> nomesProcessos = new ArrayList();
-                for (int i = processos.size()-1; i >= processos.size()-10;i--) {
+            } else if (atual == 13) {
+                List<String> nomesProcessos = new ArrayList();
+                for (int i = processos.size() - 1; i >= processos.size() - 10; i--) {
                     if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos.contains(processos.get(i).getNome())) {
-                        criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getUsoCpu()/10), processos.get(i).getNome());
-                    }   
+                        criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getUsoCpu() / 10), processos.get(i).getNome());
+                    }
                 }
-              } else if (atual == 13) {
-                 List<String> nomesProcessos = new ArrayList();
-                for (int i = processos.size()-1; i >= processos.size()-10;i--) {
+            } else if (atual == 14) {
+                List<String> nomesProcessos = new ArrayList();
+                for (int i = processos.size() - 1; i >= processos.size() - 10; i--) {
                     if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos.contains(processos.get(i).getNome())) {
                         criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getUsoMemoria()), processos.get(i).getNome());
-                    }   
+                    }
                 }
-              } 
+            }
 
             System.out.println("GRAVADO NO BANCO");
         }
