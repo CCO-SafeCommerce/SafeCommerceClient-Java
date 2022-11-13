@@ -24,11 +24,11 @@
         <!-- https://mvnrepository.com/artifact/org.springframework.security/org.springframework.security.crypto -->
 
         <!-- https://mvnrepository.com/artifact/at.favre.lib/bcrypt -->
-<dependency>
-    <groupId>at.favre.lib</groupId>
-    <artifactId>bcrypt</artifactId>
-    <version>0.9.0</version>
-</dependency>
+        <dependency>
+            <groupId>at.favre.lib</groupId>
+            <artifactId>bcrypt</artifactId>
+            <version>0.9.0</version>
+        </dependency>
         
         <dependency>
             <groupId>jfree</groupId>
@@ -75,6 +75,12 @@
             <version>1.0.3</version>
         </dependency>
        
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.uuid/java-uuid-generator -->
+        <dependency>
+            <groupId>com.fasterxml.uuid</groupId>
+            <artifactId>java-uuid-generator</artifactId>
+            <version>4.0.1</version>
+        </dependency>
 
     </dependencies>
     <properties>

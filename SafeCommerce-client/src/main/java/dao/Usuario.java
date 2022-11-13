@@ -1,11 +1,11 @@
 package dao;
 
 public class Usuario {
-	private Integer idUsuario;
+	private String idUsuario;
 	private String nome;
 	private String email;
-	private Integer fkUsuario;
-	private Integer fkEmpresa;
+	private String fkUsuario;
+	private String fkEmpresa;
 	private String senha;
 	
 	UsuarioDAO dao = new UsuarioDAO();
@@ -15,10 +15,10 @@ public class Usuario {
 	public void setSenha(String senha) {
 		this.senha = senha;
 	}
-	public Integer getIdUsuario() {
+	public String getIdUsuario() {
 		return idUsuario;
 	}
-	public void setIdUsuario(Integer idUsuario) {
+	public void setIdUsuario(String idUsuario) {
 		this.idUsuario = idUsuario;
 	}
 	public String getNome() {
@@ -33,16 +33,16 @@ public class Usuario {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	public Integer getFkUsuario() {
+	public String getFkUsuario() {
 		return fkUsuario;
 	}
-	public void setFkUsuario(Integer fkUsuario) {
+	public void setFkUsuario(String fkUsuario) {
 		this.fkUsuario = fkUsuario;
 	}
-	public Integer getFkEmpresa() {
+	public String getFkEmpresa() {
 		return fkEmpresa;
 	}
-	public void setFkEmpresa(Integer fkEmpresa) {
+	public void setFkEmpresa(String fkEmpresa) {
 		this.fkEmpresa = fkEmpresa;
 	}
 	public void fazerLogin(String email, String senha) {
@@ -57,7 +57,7 @@ public class Usuario {
 	
 	 @Override
 	  public String toString() {
-		 return String.format("\nID: %d\nNOME: %s\n",
+		 return String.format("\nID: %s\nNOME: %s\n",
 	                this.idUsuario, this.nome);
 	 }
 	

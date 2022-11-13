@@ -14,6 +14,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
+import com.github.britooo.looca.api.core.Looca;
+import dao.Servidor;
+import dao.ServidorDAO;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import util.GetMac;
 
 /**
  *
@@ -176,15 +182,37 @@ public class TelaLogin extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    public String getEnderecoMac() throws Exception{
+        GetMac gm = new GetMac();
+        String enderecoMac;
+        enderecoMac = gm.getMac();
+        enderecoMac = enderecoMac.replace("-", ":");
+        return enderecoMac;
+    } 
+    
+    
     private void entrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_entrarActionPerformed
         // TODO add your handling code here:
         String email = campoEmail.getText();
         String senha = new String(campoSenha.getPassword());
         
+        Looca looca = new Looca();
         System.out.println(email);
         System.out.println(senha);
         UsuarioDAO dao = new UsuarioDAO();
         Usuario user = dao.login(email, senha);
+        ServidorDAO serverDao = new ServidorDAO();
+        String mac = "";
+        
+        
+        try{
+             mac = getEnderecoMac();
+        }
+        catch (Exception ex) {
+            Logger.getLogger(Inicio.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Servidor server = serverDao.getServidorByMac(mac);
+        
         //System.out.println(user.getEmail());
        
         // resultStrict.verified == false
@@ -192,13 +220,16 @@ public class TelaLogin extends javax.swing.JFrame {
         if (user != null) {
         	//   System.out.println(user.getNome() + " aaaaaaa");
             this.setVisible(false);
-            Inicio init = new Inicio(user);
-
-            init.setVisible(true);
-            init.setResizable(false);
-           
-            
-
+            if (server != null) {
+                Inicio init = new Inicio(user);
+                init.setVisible(true);
+                init.setResizable(false);
+            }else{
+                TelaCadastro cadastro = new TelaCadastro(looca.getSistema().getSistemaOperacional(), mac);
+                cadastro.setVisible(true);
+                cadastro.setResizable(false);
+            }
+  
         } else {
             JOptionPane.showMessageDialog(null,
                     "Email e/ou senha inválido(s)!", "Erro", JOptionPane.ERROR_MESSAGE);

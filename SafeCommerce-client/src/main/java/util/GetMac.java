@@ -8,16 +8,7 @@ package util;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 
-/**
- *
- * @author Randa
- */
 public class GetMac {
-
-    /**
-     * @param args the command line arguments
-     */
-    
     public String getMac()throws Exception{
        String ma=null; 
 

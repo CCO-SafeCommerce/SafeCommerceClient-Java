@@ -16,7 +16,7 @@ public class ParametroDao {
     Conexao connection = new Conexao();
     JdbcTemplate con = connection.getConnection();
    
-    public List<Parametro> getParametros(Integer fkServidor) {
+    public List<Parametro> getParametros(String fkServidor) {
         List<Parametro> parametros = con.query("SELECT fk_metrica FROM Parametro where fk_Servidor = ?", new BeanPropertyRowMapper(Parametro.class), fkServidor);
         return parametros;
     }

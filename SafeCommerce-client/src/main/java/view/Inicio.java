@@ -14,6 +14,7 @@ import dao.Leitura;
 import dao.Parametro;
 import dao.ParametroDao;
 import dao.Servidor;
+import dao.ServidorDAO;
 import dao.Usuario;
 import util.GetMac;
 import io.nayuki.qrcodegen.*;
@@ -75,8 +76,6 @@ import oshi.hardware.NetworkIF;
  * @author aluno
  */
 public class Inicio extends javax.swing.JFrame {
-
-    Leitura leitura = new Leitura();
     /**
      * Creates new form Inicio
      */
@@ -85,6 +84,7 @@ public class Inicio extends javax.swing.JFrame {
     static ChartPanel chartPanel;
     GetMac gm;
     String mac;
+    ServidorDAO serverDao = new ServidorDAO();
     Conexao connection = new Conexao();
     JdbcTemplate con = connection.getConnection();
     ParametroDao parametroDao = new ParametroDao();
@@ -93,7 +93,7 @@ public class Inicio extends javax.swing.JFrame {
     Servidor servidor;
     Conversor conversor;
     List<Parametro> parametros;
-    Integer fkServidor;
+    String fkServidor;
 
     public Inicio(Usuario user) {
         try {
@@ -114,12 +114,12 @@ public class Inicio extends javax.swing.JFrame {
 
     }
 
-    public void criarCSV(Integer fkServidor, Integer fkMetrica, String valor, String componente) throws IOException {
+    public void criarCSV(String fkServidor, Integer fkMetrica, String valor, String componente) throws IOException {
         String[] header = {"fkServidor", "fkMetrica", "dataLeitura", "valor_leitura", "componente"};
         //System.out.println(componente);
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
-        String[] record1 = {String.valueOf(fkServidor), String.valueOf(fkMetrica), dtf.format(now), valor, componente};
+        String[] record1 = {fkServidor, String.valueOf(fkMetrica), dtf.format(now), valor, componente};
 
         List<String[]> list = new ArrayList<>();
         list.add(header);
@@ -143,16 +143,18 @@ public class Inicio extends javax.swing.JFrame {
     }
 
     public void inicializarValores() throws Exception {
-        gm = new GetMac();
-        mac = gm.getMac();
-        mac = mac.replace("-", ":");
         servidor = new Servidor();
         proc = looca.getProcessador();
         conversor = new Conversor();
-        fkServidor = servidor.getIdServidor(mac);
+        /*mac = gm.getMac();
+        mac = mac.replace("-", ":");
+        Servidor servidor = serverDao.getServidorByMac(mac);*/
+        fkServidor = servidor.getIdServidor();
         parametros = parametroDao.getParametros(fkServidor);
     }
-
+    
+    
+    
     private void Monitorando(Double cpu, Double ram, Double disco) throws Exception {
         Long lDisco = looca.getGrupoDeDiscos().getDiscos().get(0).getBytesDeLeitura();
         Long eDisco = looca.getGrupoDeDiscos().getDiscos().get(0).getBytesDeEscritas();
@@ -227,8 +229,6 @@ public class Inicio extends javax.swing.JFrame {
                     }
                 }
             }
-
-            System.out.println("GRAVADO NO BANCO");
         }
 
     }
