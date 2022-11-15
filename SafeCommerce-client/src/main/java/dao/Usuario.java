@@ -1,24 +1,23 @@
 package dao;
 
 public class Usuario {
-	private String idUsuario;
+	private Integer idUsuario;
 	private String nome;
 	private String email;
-	private String fkUsuario;
-	private String fkEmpresa;
+	private Integer fkUsuario;
+	private Integer fkEmpresa;
 	private String senha;
 	
-	UsuarioDAO dao = new UsuarioDAO();
 	public String getSenha() {
 		return senha;
 	}
 	public void setSenha(String senha) {
 		this.senha = senha;
 	}
-	public String getIdUsuario() {
+	public Integer getIdUsuario() {
 		return idUsuario;
 	}
-	public void setIdUsuario(String idUsuario) {
+	public void setIdUsuario(Integer idUsuario) {
 		this.idUsuario = idUsuario;
 	}
 	public String getNome() {
@@ -33,32 +32,23 @@ public class Usuario {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	public String getFkUsuario() {
+	public Integer getFkUsuario() {
 		return fkUsuario;
 	}
-	public void setFkUsuario(String fkUsuario) {
+	public void setFkUsuario(Integer fkUsuario) {
 		this.fkUsuario = fkUsuario;
 	}
-	public String getFkEmpresa() {
+	public Integer getFkEmpresa() {
 		return fkEmpresa;
 	}
-	public void setFkEmpresa(String fkEmpresa) {
+	public void setFkEmpresa(Integer fkEmpresa) {
 		this.fkEmpresa = fkEmpresa;
 	}
-	public void fazerLogin(String email, String senha) {
-		Usuario logado = dao.login(email, senha);
-		if(logado == null) {
-			System.out.println("Tivemos um probkema");
-		}else {
-			System.out.println("ok");
-		}
-		
-	}
 	
-	 @Override
-	  public String toString() {
-		 return String.format("\nID: %s\nNOME: %s\n",
-	                this.idUsuario, this.nome);
-	 }
+        @Override
+        public String toString() {
+               return String.format("\nID: %s\nNOME: %s\n",
+                      this.idUsuario, this.nome);
+       }
 	
 }

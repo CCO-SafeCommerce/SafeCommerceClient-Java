@@ -82,22 +82,22 @@ public class Inicio extends javax.swing.JFrame {
     static DefaultCategoryDataset dataset = new DefaultCategoryDataset();
     static JFreeChart lineChart;
     static ChartPanel chartPanel;
-    GetMac gm;
-    String mac;
-    ServidorDAO serverDao = new ServidorDAO();
-    Conexao connection = new Conexao();
-    JdbcTemplate con = connection.getConnection();
-    ParametroDao parametroDao = new ParametroDao();
-    Looca looca = new Looca();
-    Processador proc;
-    Servidor servidor;
-    Conversor conversor;
-    List<Parametro> parametros;
-    String fkServidor;
+    private GetMac gm;
+    private String mac;
+    private ServidorDAO serverDao = new ServidorDAO();
+    private Conexao connection = new Conexao();
+    private JdbcTemplate con = connection.getConnection();
+    private ParametroDao parametroDao = new ParametroDao();
+    private Looca looca = new Looca();
+    private Processador proc;
+    private Servidor servidor;
+    private Conversor conversor;
+    private List<Parametro> parametros;
+    private Integer fkServidor;
 
-    public Inicio(Usuario user) {
+    public Inicio(Usuario user, String enderecoMac) {
         try {
-            inicializarValores();
+            inicializarValores(enderecoMac);
         } catch (Exception ex) {
             Logger.getLogger(Inicio.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -114,12 +114,12 @@ public class Inicio extends javax.swing.JFrame {
 
     }
 
-    public void criarCSV(String fkServidor, Integer fkMetrica, String valor, String componente) throws IOException {
+    public void criarCSV(Integer fkServidor, Integer fkMetrica, String valor, String componente) throws IOException {
         String[] header = {"fkServidor", "fkMetrica", "dataLeitura", "valor_leitura", "componente"};
         //System.out.println(componente);
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.nnn");
         LocalDateTime now = LocalDateTime.now();
-        String[] record1 = {fkServidor, String.valueOf(fkMetrica), dtf.format(now), valor, componente};
+        String[] record1 = {String.valueOf(fkServidor), String.valueOf(fkMetrica), dtf.format(now), valor, componente};
 
         List<String[]> list = new ArrayList<>();
         list.add(header);
@@ -142,8 +142,8 @@ public class Inicio extends javax.swing.JFrame {
 
     }
 
-    public void inicializarValores() throws Exception {
-        servidor = new Servidor();
+    public void inicializarValores(String enderecoMac) throws Exception {
+        servidor = serverDao.getServidorByMac(enderecoMac);
         proc = looca.getProcessador();
         conversor = new Conversor();
         /*mac = gm.getMac();

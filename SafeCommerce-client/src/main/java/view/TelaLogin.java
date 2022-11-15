@@ -199,11 +199,12 @@ public class TelaLogin extends javax.swing.JFrame {
         Looca looca = new Looca();
         System.out.println(email);
         System.out.println(senha);
+        
         UsuarioDAO dao = new UsuarioDAO();
         Usuario user = dao.login(email, senha);
         ServidorDAO serverDao = new ServidorDAO();
-        String mac = "";
         
+        String mac = "";
         
         try{
              mac = getEnderecoMac();
@@ -211,25 +212,23 @@ public class TelaLogin extends javax.swing.JFrame {
         catch (Exception ex) {
             Logger.getLogger(Inicio.class.getName()).log(Level.SEVERE, null, ex);
         }
-        Servidor server = serverDao.getServidorByMac(mac);
-        
-        //System.out.println(user.getEmail());
-       
-        // resultStrict.verified == false
+
+        Boolean isServidorCadastrado = serverDao.isServidorCadastrado(mac);
 
         if (user != null) {
-        	//   System.out.println(user.getNome() + " aaaaaaa");
             this.setVisible(false);
-            if (server != null) {
-                Inicio init = new Inicio(user);
+            if (isServidorCadastrado) {
+                Inicio init = new Inicio(user, mac);
                 init.setVisible(true);
                 init.setResizable(false);
-            }else{
-                TelaCadastro cadastro = new TelaCadastro(looca.getSistema().getSistemaOperacional(), mac);
+                
+            } else{
+                String so = looca.getSistema().getSistemaOperacional();
+                
+                TelaCadastro cadastro = new TelaCadastro(so, mac, user);
                 cadastro.setVisible(true);
                 cadastro.setResizable(false);
             }
-  
         } else {
             JOptionPane.showMessageDialog(null,
                     "Email e/ou senha inválido(s)!", "Erro", JOptionPane.ERROR_MESSAGE);

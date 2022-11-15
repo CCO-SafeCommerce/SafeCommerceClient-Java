@@ -1,13 +1,22 @@
 package view;
+
+import dao.ServidorDAO;
+import dao.Usuario;
+
 public class TelaCadastro extends javax.swing.JFrame {
 
+    private Usuario usuario;
+    private ServidorDAO servidorDAO;
+    
     /**
      * Creates new form TelaCadastro
      */
-    public TelaCadastro(String so, String mac) {
+    public TelaCadastro(String so, String mac, Usuario usuario) {
         initComponents();
         campoSo.setText(so);
         campoMac.setText(mac);
+        this.usuario = usuario;
+        this.servidorDAO = new ServidorDAO();
     }
 
     /**
@@ -39,12 +48,6 @@ public class TelaCadastro extends javax.swing.JFrame {
 
         campoSo.setEditable(false);
 
-        campoModelo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                campoModeloActionPerformed(evt);
-            }
-        });
-
         campoMac.setEditable(false);
 
         jLabel1.setText("Modelo:");
@@ -55,6 +58,11 @@ public class TelaCadastro extends javax.swing.JFrame {
 
         cadastrar.setBackground(new java.awt.Color(255, 0, 0));
         cadastrar.setText("Cadastrar");
+        cadastrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cadastrarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -105,10 +113,18 @@ public class TelaCadastro extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void campoModeloActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_campoModeloActionPerformed
-        // TODO add your handling code here:
+    private void cadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cadastrarActionPerformed
         String modelo = campoModelo.getText();
-    }//GEN-LAST:event_campoModeloActionPerformed
+        String so = campoSo.getText();
+        String enderecoMac = campoMac.getText();
+        
+        this.servidorDAO.cadastrarServidor(modelo, so, enderecoMac, usuario.getFkEmpresa());
+        
+        Inicio inicio = new Inicio(usuario, enderecoMac);
+        this.setVisible(false);
+        inicio.setVisible(true);
+        inicio.setResizable(false);
+    }//GEN-LAST:event_cadastrarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -123,28 +139,5 @@ public class TelaCadastro extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField10;
-    private javax.swing.JTextField jTextField11;
-    private javax.swing.JTextField jTextField12;
-    private javax.swing.JTextField jTextField13;
-    private javax.swing.JTextField jTextField14;
-    private javax.swing.JTextField jTextField15;
-    private javax.swing.JTextField jTextField16;
-    private javax.swing.JTextField jTextField17;
-    private javax.swing.JTextField jTextField18;
-    private javax.swing.JTextField jTextField19;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField20;
-    private javax.swing.JTextField jTextField21;
-    private javax.swing.JTextField jTextField22;
-    private javax.swing.JTextField jTextField23;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JTextField jTextField5;
-    private javax.swing.JTextField jTextField6;
-    private javax.swing.JTextField jTextField7;
-    private javax.swing.JTextField jTextField8;
-    private javax.swing.JTextField jTextField9;
     // End of variables declaration//GEN-END:variables
 }
