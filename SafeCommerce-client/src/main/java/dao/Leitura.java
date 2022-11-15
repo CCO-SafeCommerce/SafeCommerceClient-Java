@@ -9,34 +9,49 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 public class Leitura {
-     Conexao connection = new Conexao();
-    JdbcTemplate con = connection.getConnection();
-    
-    private double valorLeitura;
+    private Integer fkServidor;
+    private Integer fkMetrica;
+    private String valor_leitura;
+    private String situacao;
+    private String componente;
 
-    public double getValorLeitura() {
-        return valorLeitura;
+    public Integer getFkServidor() {
+        return fkServidor;
     }
 
-    public void setValorLeitura(double valorLeitura) {
-        this.valorLeitura = valorLeitura;
+    public void setFkServidor(Integer fkServidor) {
+        this.fkServidor = fkServidor;
     }
-    
-    
-    
-    
-    public List<Leitura> getCpu(){
-        List<Leitura> leiturasCpu = con.query("SELECT valor_leitura FROM Leitura where fkMetrica = '1' ", new BeanPropertyRowMapper(Leitura.class));
-        return leiturasCpu;
+
+    public Integer getFkMetrica() {
+        return fkMetrica;
     }
-    
-    public List<Leitura> getRam(){
-        List<Leitura> leiturasRam = con.query("SELECT valor_leitura FROM Leitura where fkMetrica = '6' ", new BeanPropertyRowMapper(Leitura.class));
-        return leiturasRam;
+
+    public void setFkMetrica(Integer fkMetrica) {
+        this.fkMetrica = fkMetrica;
     }
-    
-    public List<Leitura> getDisco(){
-        List<Leitura> leiturasDisco = con.query("SELECT valor_leitura FROM Leitura where fkMetrica = '7' ", new BeanPropertyRowMapper(Leitura.class));
-        return leiturasDisco;
+
+    public String getValor_leitura() {
+        return valor_leitura;
+    }
+
+    public void setValor_leitura(String valor_leitura) {
+        this.valor_leitura = valor_leitura;
+    }
+
+    public String getSituacao() {
+        return situacao;
+    }
+
+    public void setSituacao(String situacao) {
+        this.situacao = situacao;
+    }
+
+    public String getComponente() {
+        return componente;
+    }
+
+    public void setComponente(String componente) {
+        this.componente = componente;
     }
 }

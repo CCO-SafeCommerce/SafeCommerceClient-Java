@@ -214,20 +214,20 @@ public class Inicio extends javax.swing.JFrame {
                         criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getPid()), processos.get(i).getNome());
                     }
                 }
-            } else if (atual == 13) {
-                List<String> nomesProcessos = new ArrayList();
+                List<String> nomesProcessos13 = new ArrayList();
                 for (int i = processos.size() - 1; i >= processos.size() - 10; i--) {
-                    if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos.contains(processos.get(i).getNome())) {
+                    if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos13.contains(processos.get(i).getNome())) {
                         criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getUsoCpu() / 10), processos.get(i).getNome());
                     }
                 }
-            } else if (atual == 14) {
-                List<String> nomesProcessos = new ArrayList();
+                List<String> nomesProcessos14 = new ArrayList();
                 for (int i = processos.size() - 1; i >= processos.size() - 10; i--) {
-                    if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos.contains(processos.get(i).getNome())) {
+                    if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos14.contains(processos.get(i).getNome())) {
                         criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getUsoMemoria()), processos.get(i).getNome());
                     }
                 }
+            } else if (atual == 13) {
+                // CONEXÕES TCP ATIVAS
             }
         }
 
