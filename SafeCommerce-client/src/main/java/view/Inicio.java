@@ -11,8 +11,10 @@ import com.github.britooo.looca.api.util.Conversor;
 import com.opencsv.CSVWriter;
 import dao.Conexao;
 import dao.Leitura;
+import dao.LeituraDAO;
 import dao.Parametro;
 import dao.ParametroDao;
+import dao.ProcessoDAO;
 import dao.Servidor;
 import dao.ServidorDAO;
 import dao.Usuario;
@@ -76,6 +78,7 @@ import oshi.hardware.NetworkIF;
  * @author aluno
  */
 public class Inicio extends javax.swing.JFrame {
+
     /**
      * Creates new form Inicio
      */
@@ -93,7 +96,13 @@ public class Inicio extends javax.swing.JFrame {
     private Servidor servidor;
     private Conversor conversor;
     private List<Parametro> parametros;
+    private List<Leitura> leituras;
+    private LeituraDAO leitura = new LeituraDAO();
+    private List<Processo> processosLidos;
+    private ProcessoDAO procDao= new ProcessoDAO();
+    private String situacao = "n";
     private Integer fkServidor;
+    private LocalDateTime ultimoRegistro;
 
     public Inicio(Usuario user, String enderecoMac) {
         try {
@@ -114,33 +123,7 @@ public class Inicio extends javax.swing.JFrame {
 
     }
 
-    public void criarCSV(Integer fkServidor, Integer fkMetrica, String valor, String componente) throws IOException {
-        String[] header = {"fkServidor", "fkMetrica", "dataLeitura", "valor_leitura", "componente"};
-        //System.out.println(componente);
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.nnn");
-        LocalDateTime now = LocalDateTime.now();
-        String[] record1 = {String.valueOf(fkServidor), String.valueOf(fkMetrica), dtf.format(now), valor, componente};
-
-        List<String[]> list = new ArrayList<>();
-        list.add(header);
-        list.add(record1);
-        String caminhoTemp = System.getProperty("java.io.tmpdir") + "/insert.csv";
-        caminhoTemp = caminhoTemp.replace("\\", "/");
-        //System.out.println(caminhoTemp);
-        try (CSVWriter writer = new CSVWriter(new FileWriter(System.getProperty("java.io.tmpdir") + "/insert.csv"))) {
-            writer.writeAll(list);
-        }
-        String esquel = " LOAD DATA LOCAL INFILE '" + caminhoTemp
-                + "' INTO TABLE Leitura "
-                + " FIELDS TERMINATED BY \',\' ENCLOSED BY \'\"'"
-                + " LINES TERMINATED BY \'\\n\'";
-        StopWatch timer = new StopWatch();
-        timer.start();
-        con.update(esquel);
-        timer.stop();
-        //System.out.println(timer.getTotalTimeSeconds());
-
-    }
+    
 
     public void inicializarValores(String enderecoMac) throws Exception {
         servidor = serverDao.getServidorByMac(enderecoMac);
@@ -150,15 +133,14 @@ public class Inicio extends javax.swing.JFrame {
         mac = mac.replace("-", ":");
         Servidor servidor = serverDao.getServidorByMac(mac);*/
         fkServidor = servidor.getIdServidor();
-        parametros = parametroDao.getParametros(fkServidor);
+        leitura.setUltimoRegistro(servidor.getUltimoRegistro());
     }
-    
-    
-    
+
     private void Monitorando(Double cpu, Double ram, Double disco) throws Exception {
         Long lDisco = looca.getGrupoDeDiscos().getDiscos().get(0).getBytesDeLeitura();
         Long eDisco = looca.getGrupoDeDiscos().getDiscos().get(0).getBytesDeEscritas();
         ProcessosGroup pc = looca.getGrupoDeProcessos();
+        parametros = parametroDao.getParametros(fkServidor);
         List<Processo> processos = pc.getProcessos().stream().distinct().collect(Collectors.toList());
 
         Collections.sort(processos, new Comparator<Processo>() {
@@ -176,42 +158,57 @@ public class Inicio extends javax.swing.JFrame {
             String cpuFormat = String.format("%.1f", cpu);
 
             if (atual == 1) {
-                criarCSV(fkServidor, atual, String.valueOf(proc.getUso()), "CPU");
-                // con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, atual, (proc.getUso()));
+                if (proc.getUso() >= 85 && proc.getUso() < 95 ) {
+                    situacao = "a";
+                }else if (proc.getUso() >= 95){
+                    situacao = "e";
+                }
+                Leitura cpuLeitura = new Leitura(fkServidor, atual, String.valueOf(proc.getUso()), situacao, "CPU");
+                leituras.add(cpuLeitura);
             } else if (atual == 2) {
-                criarCSV(fkServidor, atual, String.valueOf(proc.getNumeroCpusLogicas()), "CPU");
-                // con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, atual, (proc.getNumeroCpusLogicas()));
+                Leitura cpuLogicaLeitura = new Leitura(fkServidor, atual, String.valueOf(proc.getNumeroCpusLogicas()), situacao, "CPU");
+                leituras.add(cpuLogicaLeitura);
             } else if (atual == 3) {
-                criarCSV(fkServidor, atual, String.valueOf(proc.getFrequencia()).replace(",", "."), "CPU");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, atual, (cpuFormat));
+                Leitura cpuUsoCoreLeitura = new Leitura(fkServidor, atual, String.valueOf(proc.getFrequencia()).replace(",", "."), situacao, "CPU");
+                leituras.add(cpuUsoCoreLeitura);
             } else if (atual == 4) {
-                criarCSV(fkServidor, atual, String.valueOf(proc.getFrequencia()).replace(",", "."), "CPU");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, atual, (proc.getFrequencia()));
+                Leitura cpuFreqLeitura = new Leitura(fkServidor, atual, String.valueOf(proc.getFrequencia()).replace(",", "."), situacao, "CPU");
+                leituras.add(cpuFreqLeitura);
             } else if (atual == 5) {
-                criarCSV(fkServidor, atual, String.valueOf(conversor.formatarBytes(looca.getMemoria().getTotal())).replace(" GiB", "").replace(",", "."), "RAM");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'CPU')", fkServidor, atual, (looca.getMemoria().getTotal()));
+                Leitura ramLeitura = new Leitura(fkServidor, atual, String.valueOf(conversor.formatarBytes(looca.getMemoria().getTotal())).replace(" GiB", "").replace(",", "."), situacao, "RAM");
+                leituras.add(ramLeitura);
             } else if (atual == 6) {
-                criarCSV(fkServidor, atual, String.valueOf(ram), "RAM");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Ram')", fkServidor, atual, ram);
+                if (ram >= 80 && ram < 90 ) {
+                    situacao = "a";
+                }else if (ram >= 90){
+                    situacao = "e";
+                }
+                Leitura ramUsoLeitura = new Leitura(fkServidor, atual, String.valueOf(ram), situacao, "RAM");
+                leituras.add(ramUsoLeitura);
             } else if (atual == 7) {
-                criarCSV(fkServidor, atual, conversor.formatarBytes(looca.getGrupoDeDiscos().getTamanhoTotal()).replace(" GiB", "").replace(",", "."), "Disco");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, atual, conversor.formatarBytes(looca.getGrupoDeDiscos().getTamanhoTotal()));
+                Leitura discoLeitura = new Leitura(fkServidor, atual, conversor.formatarBytes(looca.getGrupoDeDiscos().getTamanhoTotal()).replace(" GiB", "").replace(",", "."), situacao, "Disco");
+                leituras.add(discoLeitura);
             } else if (atual == 8) {
-                criarCSV(fkServidor, atual, String.valueOf(disco), "Disco");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, atual, disco);
+                if (disco >= 75 && disco < 85 ) {
+                    situacao = "a";
+                }else if (disco >= 85){
+                    situacao = "e";
+                }
+                Leitura discoUsoLeitura = new Leitura(fkServidor, atual, String.valueOf(disco), situacao, "Disco");
+                leituras.add(discoUsoLeitura);
             } else if (atual == 9) {
-                criarCSV(fkServidor, atual, String.valueOf(conversor.formatarSegundosDecorridos(lDisco)), "Disco");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, atual, looca.getGrupoDeDiscos());
+                Leitura lidoDiscoLeitura = new Leitura(fkServidor, atual, String.valueOf(conversor.formatarSegundosDecorridos(lDisco)), situacao, "Disco");
+                leituras.add(lidoDiscoLeitura);
             } else if (atual == 10) {
-                criarCSV(fkServidor, atual, String.valueOf(conversor.formatarSegundosDecorridos(eDisco)), "Disco");
-                //con.update("INSERT INTO Leitura VALUES (?, ?, NOW(), ?, 'Disco')", fkServidor, atual, looca.getGrupoDeDiscos());
+                Leitura escritoDiscoLeitura = new Leitura(fkServidor, atual, String.valueOf(conversor.formatarSegundosDecorridos(eDisco)), situacao, "Disco");
+                leituras.add(escritoDiscoLeitura);
             } else if (atual == 11) {
                 //CRIA O INSERT DA TEMPERATURA AQ DUARTE
             } else if (atual == 12) {
                 List<String> nomesProcessos = new ArrayList();
                 for (int i = processos.size() - 1; i >= processos.size() - 10; i--) {
                     if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos.contains(processos.get(i).getNome())) {
-                        criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getPid()), processos.get(i).getNome());
+                        Processo procsPid = new Processo(fkServidor, atual, String.valueOf(processos.get(i).getPid()), processos.get(i).getNome());
                     }
                 }
                 List<String> nomesProcessos13 = new ArrayList();
@@ -229,6 +226,8 @@ public class Inicio extends javax.swing.JFrame {
             } else if (atual == 13) {
                 // CONEXÕES TCP ATIVAS
             }
+            leitura.inserirLeitura(leituras, ultimoRegistro);
+            leituras.clear();
         }
 
     }

@@ -15,6 +15,18 @@ public class Leitura {
     private String situacao;
     private String componente;
 
+    public Leitura(Integer fkServidor, Integer fkMetrica, String valor_leitura, String situacao, String componente) {
+        this.fkServidor = fkServidor;
+        this.fkMetrica = fkMetrica;
+        this.valor_leitura = valor_leitura;
+        this.situacao = situacao;
+        this.componente = componente;
+    }
+    
+    
+    
+    //private List<Leitura> leituras;
+
     public Integer getFkServidor() {
         return fkServidor;
     }
