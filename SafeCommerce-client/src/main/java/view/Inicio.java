@@ -15,6 +15,7 @@ import dao.LeituraDAO;
 import dao.Parametro;
 import dao.ParametroDao;
 import dao.ProcessoDAO;
+import dao.Process;
 import dao.Servidor;
 import dao.ServidorDAO;
 import dao.Usuario;
@@ -98,9 +99,11 @@ public class Inicio extends javax.swing.JFrame {
     private List<Parametro> parametros;
     private List<Leitura> leituras;
     private LeituraDAO leitura = new LeituraDAO();
-    private List<Processo> processosLidos;
-    private ProcessoDAO procDao= new ProcessoDAO();
+    private List<Process> processosLidos;
+    private ProcessoDAO procDao = new ProcessoDAO();
     private String situacao = "n";
+    private String situacaoCpu = "n";
+    private String situacaoRam = "n";
     private Integer fkServidor;
     private LocalDateTime ultimoRegistro;
 
@@ -123,8 +126,6 @@ public class Inicio extends javax.swing.JFrame {
 
     }
 
-    
-
     public void inicializarValores(String enderecoMac) throws Exception {
         servidor = serverDao.getServidorByMac(enderecoMac);
         proc = looca.getProcessador();
@@ -133,7 +134,11 @@ public class Inicio extends javax.swing.JFrame {
         mac = mac.replace("-", ":");
         Servidor servidor = serverDao.getServidorByMac(mac);*/
         fkServidor = servidor.getIdServidor();
-        leitura.setUltimoRegistro(servidor.getUltimoRegistro());
+        ultimoRegistro = servidor.getUltimoRegistro();
+        leitura.setUltimoRegistro(ultimoRegistro);
+        procDao.setUltimoRegistro(ultimoRegistro);
+        leituras = new ArrayList();
+        processosLidos = new ArrayList();
     }
 
     private void Monitorando(Double cpu, Double ram, Double disco) throws Exception {
@@ -154,13 +159,11 @@ public class Inicio extends javax.swing.JFrame {
 
         for (Parametro parametro : parametros) {
             Integer atual = parametro.getFkMetrica();
-            System.out.println(atual + " metrica tal");
-            String cpuFormat = String.format("%.1f", cpu);
-
             if (atual == 1) {
-                if (proc.getUso() >= 85 && proc.getUso() < 95 ) {
+                System.out.println(atual);
+                if (proc.getUso() >= 85 && proc.getUso() < 95) {
                     situacao = "a";
-                }else if (proc.getUso() >= 95){
+                } else if (proc.getUso() >= 95) {
                     situacao = "e";
                 }
                 Leitura cpuLeitura = new Leitura(fkServidor, atual, String.valueOf(proc.getUso()), situacao, "CPU");
@@ -169,8 +172,7 @@ public class Inicio extends javax.swing.JFrame {
                 Leitura cpuLogicaLeitura = new Leitura(fkServidor, atual, String.valueOf(proc.getNumeroCpusLogicas()), situacao, "CPU");
                 leituras.add(cpuLogicaLeitura);
             } else if (atual == 3) {
-                Leitura cpuUsoCoreLeitura = new Leitura(fkServidor, atual, String.valueOf(proc.getFrequencia()).replace(",", "."), situacao, "CPU");
-                leituras.add(cpuUsoCoreLeitura);
+
             } else if (atual == 4) {
                 Leitura cpuFreqLeitura = new Leitura(fkServidor, atual, String.valueOf(proc.getFrequencia()).replace(",", "."), situacao, "CPU");
                 leituras.add(cpuFreqLeitura);
@@ -178,20 +180,20 @@ public class Inicio extends javax.swing.JFrame {
                 Leitura ramLeitura = new Leitura(fkServidor, atual, String.valueOf(conversor.formatarBytes(looca.getMemoria().getTotal())).replace(" GiB", "").replace(",", "."), situacao, "RAM");
                 leituras.add(ramLeitura);
             } else if (atual == 6) {
-                if (ram >= 80 && ram < 90 ) {
+                if (ram >= 80 && ram < 90) {
                     situacao = "a";
-                }else if (ram >= 90){
+                } else if (ram >= 90) {
                     situacao = "e";
                 }
                 Leitura ramUsoLeitura = new Leitura(fkServidor, atual, String.valueOf(ram), situacao, "RAM");
                 leituras.add(ramUsoLeitura);
             } else if (atual == 7) {
-                Leitura discoLeitura = new Leitura(fkServidor, atual, conversor.formatarBytes(looca.getGrupoDeDiscos().getTamanhoTotal()).replace(" GiB", "").replace(",", "."), situacao, "Disco");
+                Leitura discoLeitura = new Leitura(fkServidor, atual, String.valueOf(looca.getGrupoDeDiscos().getTamanhoTotal()/1073741824), situacao, "Disco");
                 leituras.add(discoLeitura);
             } else if (atual == 8) {
-                if (disco >= 75 && disco < 85 ) {
+                if (disco >= 75 && disco < 85) {
                     situacao = "a";
-                }else if (disco >= 85){
+                } else if (disco >= 85) {
                     situacao = "e";
                 }
                 Leitura discoUsoLeitura = new Leitura(fkServidor, atual, String.valueOf(disco), situacao, "Disco");
@@ -205,30 +207,36 @@ public class Inicio extends javax.swing.JFrame {
             } else if (atual == 11) {
                 //CRIA O INSERT DA TEMPERATURA AQ DUARTE
             } else if (atual == 12) {
+                System.out.println("Entrando em processos");
                 List<String> nomesProcessos = new ArrayList();
                 for (int i = processos.size() - 1; i >= processos.size() - 10; i--) {
                     if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos.contains(processos.get(i).getNome())) {
-                        Processo procsPid = new Processo(fkServidor, atual, String.valueOf(processos.get(i).getPid()), processos.get(i).getNome());
+                        if (processos.get(i).getUsoCpu() > 70 && processos.get(i).getUsoCpu() < 90) {
+                            situacaoCpu = "a";
+                        } else if (processos.get(i).getUsoCpu() >= 90) {
+                            situacaoCpu = "e";
+                        }
+
+                        if (processos.get(i).getUsoMemoria() > 75 && processos.get(i).getUsoMemoria() < 85) {
+                            situacaoRam = "a";
+                        } else if (processos.get(i).getUsoMemoria() >= 85) {
+                            situacaoRam = "e";
+                        }
+
+                        Process processoAtual = new Process(fkServidor, processos.get(i).getPid(), processos.get(i).getNome(),
+                                (processos.get(i).getUsoCpu() / 10), situacaoCpu, processos.get(i).getUsoMemoria(), situacaoRam);
+                        processosLidos.add(processoAtual);
                     }
                 }
-                List<String> nomesProcessos13 = new ArrayList();
-                for (int i = processos.size() - 1; i >= processos.size() - 10; i--) {
-                    if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos13.contains(processos.get(i).getNome())) {
-                        criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getUsoCpu() / 10), processos.get(i).getNome());
-                    }
-                }
-                List<String> nomesProcessos14 = new ArrayList();
-                for (int i = processos.size() - 1; i >= processos.size() - 10; i--) {
-                    if (!processos.get(i).getNome().equals("Idle") && !nomesProcessos14.contains(processos.get(i).getNome())) {
-                        criarCSV(fkServidor, atual, String.valueOf(processos.get(i).getUsoMemoria()), processos.get(i).getNome());
-                    }
-                }
+
             } else if (atual == 13) {
                 // CONEXÕES TCP ATIVAS
             }
-            leitura.inserirLeitura(leituras, ultimoRegistro);
-            leituras.clear();
         }
+        procDao.inserirProcesso(processosLidos);
+        processosLidos.clear();
+        leitura.inserirLeitura(leituras);
+        leituras.clear();
 
     }
 

@@ -2,7 +2,7 @@ package dao;
 
 import java.time.LocalDateTime;
 
-public class Processo {
+public class Process {
     Integer fkServidor;
     Integer pid;
     String nome;
@@ -11,7 +11,7 @@ public class Processo {
     Double usoRam;
     String situacaoRam;
 
-    public Processo(Integer fkServidor, Integer pid, String nome, Double usoCpu, String situacaoCpu, Double usoRam, String situacaoRam) {
+    public Process(Integer fkServidor, Integer pid, String nome, Double usoCpu, String situacaoCpu, Double usoRam, String situacaoRam) {
         this.fkServidor = fkServidor;
         this.pid = pid;
         this.nome = nome;
@@ -35,14 +35,6 @@ public class Processo {
 
     public void setPid(Integer pid) {
         this.pid = pid;
-    }
-
-    public LocalDateTime getDataLeitura() {
-        return dataLeitura;
-    }
-
-    public void setDataLeitura(LocalDateTime dataLeitura) {
-        this.dataLeitura = dataLeitura;
     }
 
     public String getNome() {
