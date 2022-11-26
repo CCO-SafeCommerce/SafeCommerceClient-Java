@@ -17,6 +17,8 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.github.britooo.looca.api.core.Looca;
 import dao.Servidor;
 import dao.ServidorDAO;
+
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import util.GetMac;
@@ -88,7 +90,11 @@ public class TelaLogin extends javax.swing.JFrame {
         entrar.setText("Login");
         entrar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                entrarActionPerformed(evt);
+                try {
+                    entrarActionPerformed(evt);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
 
@@ -188,24 +194,24 @@ public class TelaLogin extends javax.swing.JFrame {
         enderecoMac = gm.getMac();
         enderecoMac = enderecoMac.replace("-", ":");
         return enderecoMac;
-    } 
-    
-    
-    private void entrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_entrarActionPerformed
+    }
+
+
+    private void entrarActionPerformed(java.awt.event.ActionEvent evt) throws SQLException {//GEN-FIRST:event_entrarActionPerformed
         // TODO add your handling code here:
         String email = campoEmail.getText();
         String senha = new String(campoSenha.getPassword());
-        
+
         Looca looca = new Looca();
         System.out.println(email);
         System.out.println(senha);
-        
+
         UsuarioDAO dao = new UsuarioDAO();
         Usuario user = dao.login(email, senha);
         ServidorDAO serverDao = new ServidorDAO();
-        
+
         String mac = "";
-        
+
         try{
              mac = getEnderecoMac();
         }
@@ -221,10 +227,10 @@ public class TelaLogin extends javax.swing.JFrame {
                 Inicio init = new Inicio(user, mac);
                 init.setVisible(true);
                 init.setResizable(false);
-                
+
             } else{
                 String so = looca.getSistema().getSistemaOperacional();
-                
+
                 TelaCadastro cadastro = new TelaCadastro(so, mac, user);
                 cadastro.setVisible(true);
                 cadastro.setResizable(false);
@@ -255,7 +261,7 @@ public class TelaLogin extends javax.swing.JFrame {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {

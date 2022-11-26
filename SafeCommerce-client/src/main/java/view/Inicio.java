@@ -156,7 +156,7 @@ public class Inicio extends javax.swing.JFrame {
                 return uso1.compareTo(uso2);
             }
         });
-
+        System.out.println(parametros);
         for (Parametro parametro : parametros) {
             Integer atual = parametro.getFkMetrica();
             if (atual == 1) {
@@ -174,6 +174,8 @@ public class Inicio extends javax.swing.JFrame {
             } else if (atual == 3) {
 
             } else if (atual == 4) {
+                Conversor conversor = new Conversor();
+
                 Leitura cpuFreqLeitura = new Leitura(fkServidor, atual, String.valueOf(proc.getFrequencia()).replace(",", "."), situacao, "CPU");
                 leituras.add(cpuFreqLeitura);
             } else if (atual == 5) {
@@ -316,6 +318,7 @@ public class Inicio extends javax.swing.JFrame {
                     Double usoCPU = cpu.getUso();
 
                     Monitorando(usoCPU, porcentagemRam, porcentagemVolume);
+
                     cpuSeries.add(cpuSeries.getItemCount(), usoCPU);
                     ramSeries.add(ramSeries.getItemCount(), porcentagemRam);
                     discoSeries.add(discoSeries.getItemCount(), porcentagemVolume);
@@ -455,7 +458,7 @@ public class Inicio extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
 
         pack();
-    }// </editor-fold>                        
+    }// </editor-fold>
 
     /**
      * @param args the command line arguments
@@ -583,7 +586,7 @@ public class Inicio extends javax.swing.JFrame {
         return sb.append("\" fill=\"" + darkColor + "\"/>\n").append("</svg>\n").toString();
     }
 
-    // Variables declaration - do not modify                     
+    // Variables declaration - do not modify
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel labelSaudacao;
     private javax.swing.JLabel qrCodeLabel;

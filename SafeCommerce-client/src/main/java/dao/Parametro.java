@@ -11,6 +11,11 @@ package dao;
 public class Parametro {
     private Integer fkMetrica;
 
+    public Parametro(Integer fkMetrica){
+        this.fkMetrica = fkMetrica;
+    }
+    public Parametro(){}
+
     @Override
     public String toString() {
         return "Parametro{" + ", fkMetrica=" + fkMetrica + '}';
@@ -23,5 +28,5 @@ public class Parametro {
     public void setFkMetrica(Integer fkMetrica) {
         this.fkMetrica = fkMetrica;
     }
-    
+
 }

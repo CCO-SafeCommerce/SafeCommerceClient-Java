@@ -1,39 +1,82 @@
-package dao;
+    package dao;
 
-import com.opencsv.CSVWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.util.StopWatch;
+    import com.opencsv.CSVWriter;
+    import java.io.FileWriter;
+    import java.io.IOException;
+    import java.sql.SQLException;
+    import java.sql.Statement;
+    import java.time.LocalDateTime;
+    import java.time.format.DateTimeFormatter;
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.Date;
+    import org.springframework.jdbc.core.JdbcTemplate;
+    import org.springframework.util.StopWatch;
 
-public class LeituraDAO {
+    public class LeituraDAO {
+        private LocalDateTime ultimoRegistro;
+        private ConexaoAzure conexao;
+        private Statement statement;
 
-    Conexao connection = new Conexao();
-    JdbcTemplate con = connection.getConnection();
+        public LeituraDAO() {
+            try {
+                conexao = new ConexaoAzure();
+                statement = conexao.getStatement();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    /*
+        Conexao connection = new Conexao();
+        JdbcTemplate con = connection.getConnection();
 
-    private LocalDateTime ultimoRegistro;
-  
-    public void inserirLeitura(List<Leitura> leituras) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.nnn");
-        LocalDateTime now = LocalDateTime.now();
-        String dataFormatada = dtf.format(now);
-        dataFormatada = dataFormatada.substring(0,dataFormatada.length()-5);
-        
+
+
+        public void inserirLeitura(List<Leitura> leituras) {
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.nnn");
+            LocalDateTime now = LocalDateTime.now();
+            String dataFormatada = dtf.format(now);
+            dataFormatada = dataFormatada.substring(0,dataFormatada.length()-5);
+
+                for (Leitura leitura : leituras) {
+                    con.update("INSERT INTO Leitura VALUES (?, ?, ?, ?, ?, ?)", leitura.getFkServidor(), leitura.getFkMetrica(), dataFormatada, leitura.getValor_leitura(), leitura.getSituacao(), leitura.getComponente());
+                }
+                ultimoRegistro = now;
+            }
+    */
+        public void inserirLeitura(List<Leitura> leituras) {
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.nnn");
+            LocalDateTime now = LocalDateTime.now();
+            //localdatetime to date
+            Date date = java.sql.Timestamp.valueOf(now);
+//split date in . and get the first part
+            String dataFormatada = date.toString().split("\\.")[0];
+
             for (Leitura leitura : leituras) {
-                con.update("INSERT INTO Leitura VALUES (?, ?, ?, ?, ?, ?)", leitura.getFkServidor(), leitura.getFkMetrica(), dataFormatada, leitura.getValor_leitura(), leitura.getSituacao(), leitura.getComponente());
+                String sql = "INSERT INTO Leitura VALUES ("+leitura.getFkServidor()+", "+
+                        leitura.getFkMetrica()+", '"
+                        +dataFormatada+"', '"
+                        +leitura.getValor_leitura()+"', '"
+                        +leitura.getSituacao()+"', '"
+                        +leitura.getComponente()+"')";
+                System.out.println(sql);
+                try {
+                    statement.executeUpdate(sql);
+                } catch (SQLException e) {
+                    System.out.println("Erro ao inserir leitura");
+                    throw new RuntimeException(e);
+
+                }
+
             }
             ultimoRegistro = now;
         }
 
-    public LocalDateTime getUltimoRegistro() {
-        return ultimoRegistro;
-    }
+        public LocalDateTime getUltimoRegistro() {
+            return ultimoRegistro;
+        }
 
-    public void setUltimoRegistro(LocalDateTime ultimoRegistro) {
-        this.ultimoRegistro = ultimoRegistro;
+        public void setUltimoRegistro(LocalDateTime ultimoRegistro) {
+            this.ultimoRegistro = ultimoRegistro;
+        }
     }
-}

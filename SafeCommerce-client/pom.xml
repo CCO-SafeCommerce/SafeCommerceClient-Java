@@ -15,7 +15,7 @@
             <version>1.8.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/jfree/jfreechart -->
-        
+
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
@@ -29,7 +29,14 @@
             <artifactId>bcrypt</artifactId>
             <version>0.9.0</version>
         </dependency>
-        
+
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>7.4.1.jre8</version>
+        </dependency>
+
+
         <dependency>
             <groupId>jfree</groupId>
             <artifactId>jfreechart</artifactId>
@@ -53,7 +60,7 @@
             <!-- ou versão que já existir na .m2 local -->
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.mindrot.bcrypt/bcrypt -->
-     
+
 
         <dependency>
             <groupId>org.springframework</groupId>
@@ -61,8 +68,8 @@
             <version>5.0.5.RELEASE</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/at.favre.lib/bcrypt -->
-       
-      
+
+
 
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -74,7 +81,7 @@
             <artifactId>looca-api</artifactId>
             <version>1.0.3</version>
         </dependency>
-       
+
         <!-- https://mvnrepository.com/artifact/com.fasterxml.uuid/java-uuid-generator -->
         <dependency>
             <groupId>com.fasterxml.uuid</groupId>
