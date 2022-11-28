@@ -6,6 +6,7 @@
     import java.sql.SQLException;
     import java.sql.Statement;
     import java.time.LocalDateTime;
+    import java.time.ZoneId;
     import java.time.format.DateTimeFormatter;
     import java.util.ArrayList;
     import java.util.List;
@@ -46,10 +47,9 @@
     */
         public void inserirLeitura(List<Leitura> leituras) {
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.nnn");
-            LocalDateTime now = LocalDateTime.now();
-            //localdatetime to date
+            LocalDateTime now = LocalDateTime.now(ZoneId.of("UTC"));
+
             Date date = java.sql.Timestamp.valueOf(now);
-//split date in . and get the first part
             String dataFormatada = date.toString().split("\\.")[0];
 
             for (Leitura leitura : leituras) {

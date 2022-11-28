@@ -9,6 +9,9 @@ import com.github.britooo.looca.api.group.processos.Processo;
 import com.github.britooo.looca.api.group.processos.ProcessosGroup;
 import com.github.britooo.looca.api.util.Conversor;
 import com.opencsv.CSVWriter;
+import com.profesorfalken.jsensors.JSensors;
+import com.profesorfalken.jsensors.model.components.Components;
+import com.profesorfalken.jsensors.model.components.Cpu;
 import dao.Conexao;
 import dao.Leitura;
 import dao.LeituraDAO;
@@ -107,6 +110,7 @@ public class Inicio extends javax.swing.JFrame {
     private Integer fkServidor;
     private LocalDateTime ultimoRegistro;
 
+    private Components components;
     public Inicio(Usuario user, String enderecoMac) {
         try {
             inicializarValores(enderecoMac);
@@ -139,11 +143,11 @@ public class Inicio extends javax.swing.JFrame {
         procDao.setUltimoRegistro(ultimoRegistro);
         leituras = new ArrayList();
         processosLidos = new ArrayList();
+        components = JSensors.get.components();
     }
 
     private void Monitorando(Double cpu, Double ram, Double disco) throws Exception {
-        Long lDisco = looca.getGrupoDeDiscos().getDiscos().get(0).getBytesDeLeitura();
-        Long eDisco = looca.getGrupoDeDiscos().getDiscos().get(0).getBytesDeEscritas();
+
         ProcessosGroup pc = looca.getGrupoDeProcessos();
         parametros = parametroDao.getParametros(fkServidor);
         List<Processo> processos = pc.getProcessos().stream().distinct().collect(Collectors.toList());
@@ -198,16 +202,23 @@ public class Inicio extends javax.swing.JFrame {
                 } else if (disco >= 85) {
                     situacao = "e";
                 }
+                Long eDisco = looca.getGrupoDeDiscos().getDiscos().stream().mapToLong(d -> d.getBytesDeEscritas()).sum();
                 Leitura discoUsoLeitura = new Leitura(fkServidor, atual, String.valueOf(disco), situacao, "Disco");
+                System.out.println(eDisco);
                 leituras.add(discoUsoLeitura);
             } else if (atual == 9) {
-                Leitura lidoDiscoLeitura = new Leitura(fkServidor, atual, String.valueOf(conversor.formatarSegundosDecorridos(lDisco)), situacao, "Disco");
+                Long lDisco = looca.getGrupoDeDiscos().getDiscos().stream().mapToLong(d -> d.getBytesDeLeitura()).sum();
+                Leitura lidoDiscoLeitura = new Leitura(fkServidor, atual, String.valueOf(lDisco), situacao, "Disco");
                 leituras.add(lidoDiscoLeitura);
+
             } else if (atual == 10) {
-                Leitura escritoDiscoLeitura = new Leitura(fkServidor, atual, String.valueOf(conversor.formatarSegundosDecorridos(eDisco)), situacao, "Disco");
+                Long eDisco = looca.getGrupoDeDiscos().getDiscos().stream().mapToLong(d -> d.getBytesDeEscritas()).sum();
+                Leitura escritoDiscoLeitura = new Leitura(fkServidor, atual, String.valueOf(eDisco), situacao, "Disco");
                 leituras.add(escritoDiscoLeitura);
             } else if (atual == 11) {
                 //CRIA O INSERT DA TEMPERATURA AQ DUARTE
+                Leitura temperatura = new Leitura(fkServidor, atual, String.valueOf(looca.getTemperatura().getTemperatura()), situacao, "Temperatura");
+                leituras.add(temperatura);
             } else if (atual == 12) {
                 System.out.println("Entrando em processos");
                 List<String> nomesProcessos = new ArrayList();
