@@ -218,6 +218,7 @@ public class Inicio extends javax.swing.JFrame {
             } else if (atual == 11) {
                 //CRIA O INSERT DA TEMPERATURA AQ DUARTE
                 Double temp = looca.getTemperatura().getTemperatura();
+                situacao = "n";
                 if(temp >=65 && temp < 75){
                     situacao = "a";
                 }
