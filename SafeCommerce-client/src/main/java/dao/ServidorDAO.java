@@ -71,9 +71,9 @@ public class ServidorDAO {
         return !servidores.isEmpty();
     }
 
-    public void cadastrarServidor(String modelo, String so, String enderecoMac, Integer fkEmpresa) {
+    public void cadastrarServidor(String modelo, String so, String enderecoMac, Integer fkEmpresa, String ipServidor) {
         try {
-            String sql = "INSERT INTO Servidor (modelo, so, enderecoMac, fkEmpresa) VALUES ('" + modelo + "','" + so + "','" + enderecoMac + "'," + fkEmpresa + ")";
+            String sql = "INSERT INTO Servidor (modelo, so, enderecoMac, fkEmpresa, ipServidor) VALUES ('" + modelo + "','" + so + "','" + enderecoMac + "','" + fkEmpresa+ "','" +ipServidor + "')";
             statement.executeUpdate(sql);
             //"INSERT INTO Parametro VALUES ((SELECT idServidor FROM Servidor WHERE enderecoMac = '{mac_add}'), 2), ((SELECT idServidor FROM Servidor WHERE enderecoMac = '{mac_add}'), 5), ((SELECT idServidor FROM Servidor WHERE enderecoMac = '{mac_add}'), 7);")
             String sqlValoresDefault = "INSERT INTO Parametro (fk_Servidor, fk_Metrica) VALUES ((SELECT idServidor FROM Servidor WHERE enderecoMac = '" + enderecoMac + "'), 2), ((SELECT idServidor FROM Servidor WHERE enderecoMac = '" + enderecoMac + "'), 5), ((SELECT idServidor FROM Servidor WHERE enderecoMac = '" + enderecoMac + "'), 7)";

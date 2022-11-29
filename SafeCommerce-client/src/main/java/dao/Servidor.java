@@ -3,7 +3,7 @@
 import java.time.LocalDateTime;
 
 public class Servidor {
-    
+
     private Integer idServidor;
     private String enderecoMac;
     private String modelo;
@@ -11,16 +11,19 @@ public class Servidor {
     private Integer fkEmpresa;
     private LocalDateTime ultimoRegistro;
 
-    public Servidor(Integer idServidor, String enderecoMac, String modelo, String so, Integer fkEmpresa, LocalDateTime ultimoRegistro) {
+    private String ipServidor;
+
+    public Servidor(Integer idServidor, String enderecoMac, String modelo, String so, Integer fkEmpresa, LocalDateTime ultimoRegistro, String ipServidor) {
         this.idServidor = idServidor;
         this.enderecoMac = enderecoMac;
         this.modelo = modelo;
         this.so = so;
         this.fkEmpresa = fkEmpresa;
         this.ultimoRegistro = ultimoRegistro;
+        this.ipServidor = ipServidor;
     }
     public Servidor(){
-        
+
     }
 
     public Integer getIdServidor() {
@@ -53,7 +56,7 @@ public class Servidor {
 
     public void setSo(String so) {
         this.so = so;
-    } 
+    }
 
     public Integer getFkEmpresa() {
         return fkEmpresa;
@@ -69,5 +72,12 @@ public class Servidor {
 
     public void setUltimoRegistro(LocalDateTime ultimoRegistro) {
         this.ultimoRegistro = ultimoRegistro;
+    }
+
+    public String getIpServidor() {
+        return ipServidor;
+    }
+    public void setIpServidor(String ipServidor) {
+        this.ipServidor = ipServidor;
     }
 }
