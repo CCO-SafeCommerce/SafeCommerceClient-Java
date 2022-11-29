@@ -217,6 +217,14 @@ public class Inicio extends javax.swing.JFrame {
                 leituras.add(escritoDiscoLeitura);
             } else if (atual == 11) {
                 //CRIA O INSERT DA TEMPERATURA AQ DUARTE
+                Double temp = looca.getTemperatura().getTemperatura();
+                if(temp >=65 && temp < 75){
+                    situacao = "a";
+                }
+                else if(temp  >= 75){
+                    situacao = "e";
+                }
+                
                 Leitura temperatura = new Leitura(fkServidor, atual, String.valueOf(looca.getTemperatura().getTemperatura()), situacao, "Temperatura");
                 leituras.add(temperatura);
             } else if (atual == 12) {
