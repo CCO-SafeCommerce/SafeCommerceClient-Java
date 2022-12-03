@@ -12,6 +12,8 @@ import com.opencsv.CSVWriter;
 import com.profesorfalken.jsensors.JSensors;
 import com.profesorfalken.jsensors.model.components.Components;
 import com.profesorfalken.jsensors.model.components.Cpu;
+import dao.Aplicacao;
+import dao.AplicacaoDAO;
 import dao.Conexao;
 import dao.Leitura;
 import dao.LeituraDAO;
@@ -41,6 +43,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.Random;
 import java.util.logging.Level;
@@ -76,6 +79,8 @@ import javax.swing.JButton;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StopWatch;
 import oshi.hardware.NetworkIF;
+import oshi.software.os.InternetProtocolStats;
+import util.NetConnection;
 
 /**
  *
@@ -252,7 +257,23 @@ public class Inicio extends javax.swing.JFrame {
                 }
 
             } else if (atual == 13) {
-                // CONEXÕES TCP ATIVAS
+                List<InternetProtocolStats.IPConnection> network = new NetConnection().getConnections();
+                List<Aplicacao> aplicacoes = new AplicacaoDAO().getAplicacoes(fkServidor);
+                
+                for (Aplicacao aplicacao : aplicacoes) {
+                    List<InternetProtocolStats.IPConnection> collect = network.stream()
+                            .filter(conn -> conn.getLocalPort() == aplicacao.getPorta()).collect(Collectors.toList());
+                    
+                    Integer demanda = collect.size();                                        
+                    String situacao = "a";
+                    
+                    if (demanda > 0) {
+                        situacao = "n";
+                    }
+                    
+                    Leitura appLeitura = new Leitura(fkServidor, atual, String.valueOf(demanda), situacao, aplicacao.getComponente());
+                    leituras.add(appLeitura);
+                }
             }
         }
         procDao.inserirProcesso(processosLidos);
