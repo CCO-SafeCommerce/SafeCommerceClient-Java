@@ -11,7 +11,7 @@ import java.sql.Statement;
 public class ConexaoAzure {
 
         private Connection connection;
-        private String SERVER = "jdbc:sqlserver://grupo0-1cco.database.windows.net:1433;";
+        private String SERVER = "jdbc:sqlserver://safecommmerce.database.windows.net:1433;";
         private String DATABASE = "safecommmerce;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;";
         private String USER = "grupo01cco;";
         private String PASSWORD = "1cco#grupo4;";

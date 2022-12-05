@@ -81,6 +81,7 @@ import org.springframework.util.StopWatch;
 import oshi.hardware.NetworkIF;
 import oshi.software.os.InternetProtocolStats;
 import util.NetConnection;
+import util.Notificador;
 
 /**
  *
@@ -113,6 +114,8 @@ public class Inicio extends javax.swing.JFrame {
     private String situacaoCpu = "n";
     private String situacaoRam = "n";
     private Integer fkServidor;
+    private String nomeServidor;
+
     private LocalDateTime ultimoRegistro;
 
     private Components components;
@@ -143,6 +146,8 @@ public class Inicio extends javax.swing.JFrame {
         mac = mac.replace("-", ":");
         Servidor servidor = serverDao.getServidorByMac(mac);*/
         fkServidor = servidor.getIdServidor();
+        nomeServidor = servidor.getModelo();
+        mac = servidor.getEnderecoMac();
         ultimoRegistro = servidor.getUltimoRegistro();
         leitura.setUltimoRegistro(ultimoRegistro);
         procDao.setUltimoRegistro(ultimoRegistro);
@@ -169,15 +174,26 @@ public class Inicio extends javax.swing.JFrame {
         for (Parametro parametro : parametros) {
             Integer atual = parametro.getFkMetrica();
             if (atual == 1) {
-                System.out.println(atual);
+                //System.out.println(atual);
+
+                situacao = "n";
+                String mensagem = "O uso de CPU do servidor de modelo "+nomeServidor+ " e endereço MAC " + mac + " atingiu níveis de uso de " + proc.getUso() + "%. Por favor verifique o que está ocasinando este nivel de uso antes que a situação do componente se agrave.";
+                String summary = "CPU acima de 95 de uso";
+                String description = "O uso de CPU do servidor de modelo "+nomeServidor+ " e endereço MAC " + mac + " atingiu níveis de uso de " + proc.getUso() + "%. Recomendamos uma verificação do motivo deste nivel de uso elevado.";
+
+
                 if (proc.getUso() >= 85 && proc.getUso() < 95) {
                     situacao = "a";
+                    new Notificador().enviarMensagemSlack(mensagem);
                 } else if (proc.getUso() >= 95) {
                     situacao = "e";
+                    new Notificador().enviarMensagemSlack(mensagem);
+                    new Notificador().createIssue(summary, description);
                 }
                 Leitura cpuLeitura = new Leitura(fkServidor, atual, String.valueOf(proc.getUso()), situacao, "CPU");
                 leituras.add(cpuLeitura);
             } else if (atual == 2) {
+
                 Leitura cpuLogicaLeitura = new Leitura(fkServidor, atual, String.valueOf(proc.getNumeroCpusLogicas()), situacao, "CPU");
                 leituras.add(cpuLogicaLeitura);
             } else if (atual == 3) {
@@ -191,10 +207,19 @@ public class Inicio extends javax.swing.JFrame {
                 Leitura ramLeitura = new Leitura(fkServidor, atual, String.valueOf(conversor.formatarBytes(looca.getMemoria().getTotal())).replace(" GiB", "").replace(",", "."), situacao, "RAM");
                 leituras.add(ramLeitura);
             } else if (atual == 6) {
-                if (ram >= 80 && ram < 90) {
+                situacao = "n";
+                String mensagem = "A memória RAM do servidor de modelo "+nomeServidor+ " e endereço MAC " + mac + " atingiram elevados niveis de uso acima de 85%. Por favor verifique o que está ocasinando este nivel de uso antes que a situação do componente se agrave.";
+                String summary = "Uso de memória RAM em " + ram + "%";
+                String description = "A memória RAM do servidor de modelo "+nomeServidor+ " e endereço MAC " + mac + " atingiu um uso de " + ram + "%. Recomendamos uma verificação do motivo deste nivel de uso elevado.";
+
+
+                if (ram >= 85 && ram < 95) {
                     situacao = "a";
-                } else if (ram >= 90) {
+                    new Notificador().enviarMensagemSlack(mensagem);
+                } else if (ram >= 95) {
                     situacao = "e";
+                    new Notificador().enviarMensagemSlack(mensagem);
+                    new Notificador().createIssue(summary, description);
                 }
                 Leitura ramUsoLeitura = new Leitura(fkServidor, atual, String.valueOf(ram), situacao, "RAM");
                 leituras.add(ramUsoLeitura);
@@ -202,10 +227,19 @@ public class Inicio extends javax.swing.JFrame {
                 Leitura discoLeitura = new Leitura(fkServidor, atual, String.valueOf(looca.getGrupoDeDiscos().getTamanhoTotal()/1073741824), situacao, "Disco");
                 leituras.add(discoLeitura);
             } else if (atual == 8) {
+                situacao = "n";
+                String summary = "Uso de memória em DISCO atingiu uso de " + disco + "%";
+                String description = "A memória em DISCO do servidor de modelo "+nomeServidor+ " e endereço MAC " + mac + " atingiu um uso de " + disco + "%. Recomendamos uma verificação do motivo deste nivel de uso elevado.";
+                String mensagem = "A memória em DISCO do servidor de modelo "+nomeServidor+ " e endereço MAC " + mac + " atingiram elevados niveis de uso acima de 85%. Por favor verifique o que está ocasinando este nivel de uso antes que a situação do componente se agrave.";
+
+
                 if (disco >= 75 && disco < 85) {
                     situacao = "a";
+                    new Notificador().enviarMensagemSlack(mensagem);
                 } else if (disco >= 85) {
                     situacao = "e";
+                    new Notificador().enviarMensagemSlack(mensagem);
+                    new Notificador().createIssue(summary, description);
                 }
                 Long eDisco = looca.getGrupoDeDiscos().getDiscos().stream().mapToLong(d -> d.getBytesDeEscritas()).sum();
                 Leitura discoUsoLeitura = new Leitura(fkServidor, atual, String.valueOf(disco), situacao, "Disco");
@@ -222,16 +256,26 @@ public class Inicio extends javax.swing.JFrame {
                 leituras.add(escritoDiscoLeitura);
             } else if (atual == 11) {
                 //CRIA O INSERT DA TEMPERATURA AQ DUARTE
+
+
                 Double temp = looca.getTemperatura().getTemperatura();
                 situacao = "n";
-                if(temp >=65 && temp < 75){
+                String summary = "A temperatura atingiu " + temp + "ºC";
+                String description = "A temperatura da CPU do servidor de modelo "+nomeServidor+ " e endereço MAC " + mac + " atingiu " + temp + "ºC. Recomendamos uma verificação do motivo desta temperatura elevada.";
+                String mensagem = "A temperatura da CPU do servidor de modelo "+nomeServidor+ " e endereço MAC " + mac + " atingiu" + temp + "ºC Por favor verifique o que está ocasinando esta temperatura antes que a situação do componente se agrave.";
+
+
+                if(temp >=70 && temp < 75){
                     situacao = "a";
+                    new Notificador().enviarMensagemSlack(mensagem);
                 }
                 else if(temp  >= 75){
                     situacao = "e";
+                    new Notificador().enviarMensagemSlack(mensagem);
+                    new Notificador().createIssue(summary, description);
                 }
-                
-                Leitura temperatura = new Leitura(fkServidor, atual, String.valueOf(looca.getTemperatura().getTemperatura()), situacao, "Temperatura");
+
+                Leitura temperatura = new Leitura(fkServidor, atual, String.valueOf(looca.getTemperatura().getTemperatura()), situacao, "TEMP CPU");
                 leituras.add(temperatura);
             } else if (atual == 12) {
                 System.out.println("Entrando em processos");
@@ -259,18 +303,18 @@ public class Inicio extends javax.swing.JFrame {
             } else if (atual == 13) {
                 List<InternetProtocolStats.IPConnection> network = new NetConnection().getConnections();
                 List<Aplicacao> aplicacoes = new AplicacaoDAO().getAplicacoes(fkServidor);
-                
+
                 for (Aplicacao aplicacao : aplicacoes) {
                     List<InternetProtocolStats.IPConnection> collect = network.stream()
                             .filter(conn -> conn.getLocalPort() == aplicacao.getPorta()).collect(Collectors.toList());
-                    
-                    Integer demanda = collect.size();                                        
+
+                    Integer demanda = collect.size();
                     String situacao = "a";
-                    
+
                     if (demanda > 0) {
                         situacao = "n";
                     }
-                    
+
                     Leitura appLeitura = new Leitura(fkServidor, atual, String.valueOf(demanda), situacao, aplicacao.getComponente());
                     leituras.add(appLeitura);
                 }
@@ -463,7 +507,9 @@ public class Inicio extends javax.swing.JFrame {
         );
         jPanel1.setLayout(jPanel1Layout);
         String token = toHex(usuario.getSenha());
-        QrCode qr0 = QrCode.encodeText("http://localhost:3333/dashboard/servidores-java.html?idServer=" + fkServidor + "&idUser=" + usuario.getIdUsuario() + "&token=" + token, QrCode.Ecc.LOW);
+        System.out.println("https://safecommercee.azurewebsites.net/dashboard/servidores-java.html?idServer=" + fkServidor + "&idUser=" + usuario.getIdUsuario() + "&token=" + token);
+        QrCode qr0 = QrCode.encodeText("https://safecommercee.azurewebsites.net/dashboard/servidores-java.html?idServer=" + fkServidor + "&idUser=" + usuario.getIdUsuario() + "&token=" + token, QrCode.Ecc.LOW);
+
         BufferedImage img = toImage(qr0, 2, 1); // See QrCodeGeneratorDemo
         String caminho = System.getProperty("java.io.tmpdir") + "/qr-code.png";
 
